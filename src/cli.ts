@@ -19,6 +19,8 @@ interface CliOptions {
   refresh?: boolean;
   random?: boolean;
   plain?: boolean;
+  force?: boolean;
+  maxViews?: number;
 }
 
 interface InitCommandOptions {
@@ -42,6 +44,14 @@ function parseShellOption(value: string): SupportedShell {
   throw new InvalidArgumentError('Shell must be one of: powershell, bash, zsh');
 }
 
+function parseMaxViewsOption(value: string): number {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed < 0) {
+    throw new InvalidArgumentError('max-views must be a non-negative integer (0 for unlimited)');
+  }
+  return parsed;
+}
+
 export function createProgram(): Command {
   const program = new Command();
 
@@ -52,10 +62,18 @@ export function createProgram(): Command {
     .option('-r, --refresh', "Force refresh today's joke from the API")
     .option('--random', 'Fetch a new random joke immediately without updating daily cache')
     .option('-p, --plain', 'Print plain text joke without box or color formatting')
+    .option('-f, --force', "Always show today's joke even if daily session limit is reached")
+    .option(
+      '-m, --max-views <count>',
+      'Max terminal sessions per day to display the joke (default: 3, 0 for unlimited)',
+      parseMaxViewsOption
+    )
     .action(async (options: CliOptions) => {
       const forceRefresh = Boolean(options.refresh);
       const isRandom = Boolean(options.random);
       const plain = Boolean(options.plain);
+      const forceShow = Boolean(options.force);
+      const maxViews = options.maxViews;
 
       const willFetchNetwork = isRandom || forceRefresh || !hasCachedJokeForToday();
       const spinner =
@@ -71,7 +89,7 @@ export function createProgram(): Command {
           result = await getRandomJoke();
           title = 'Random Dad Joke';
         } else {
-          result = await getDailyJoke({ forceRefresh });
+          result = await getDailyJoke({ forceRefresh, forceShow, maxViews });
           if (forceRefresh) {
             title = "Today's Dad Joke (Refreshed)";
           }
@@ -79,7 +97,7 @@ export function createProgram(): Command {
 
         spinner?.stop();
 
-        if (result && result.joke) {
+        if (result && result.joke && !result.hidden) {
           console.log(formatJoke(result.joke, { plain, title }));
         }
       } catch (err) {
@@ -150,7 +168,7 @@ export function createProgram(): Command {
         `${chalk.bold('Shell:')}   ${chalk.cyan(result.shell)}`,
         `${chalk.bold('Profile:')} ${chalk.underline(result.profilePath)}`,
         '',
-        chalk.dim('Open a new terminal session (or reload your profile) to see today\'s joke!')
+        chalk.dim("Open a new terminal session (or reload your profile) to see today's joke!")
       ].join('\n');
 
       console.log(

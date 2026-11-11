@@ -4,12 +4,15 @@ import os from 'node:os';
 import { getFallbackJoke } from './fallbacks.js';
 
 export const JOKE_API_URL = 'https://icanhazdadjoke.com/';
+export const DEFAULT_MAX_DAILY_VIEWS = 3;
 
 export interface CachedJokeRecord {
   date: string;
   joke: string;
   id?: string | null;
   cachedAt?: string;
+  views?: number;
+  maxViews?: number;
 }
 
 export type JokeSource = 'cache' | 'network' | 'stale-cache' | 'offline-fallback';
@@ -18,6 +21,9 @@ export interface JokeResult {
   joke: string;
   source: JokeSource;
   date?: string;
+  views?: number;
+  maxViews?: number;
+  hidden?: boolean;
 }
 
 export interface FetchOptions {
@@ -27,6 +33,8 @@ export interface FetchOptions {
 
 export interface DailyJokeOptions extends FetchOptions {
   forceRefresh?: boolean;
+  forceShow?: boolean;
+  maxViews?: number;
   cachePath?: string;
   todayKey?: string;
 }
@@ -53,7 +61,9 @@ export function readCache(cachePath: string = getDefaultCachePath()): CachedJoke
         date: data.date,
         joke: data.joke,
         id: data.id ?? null,
-        cachedAt: data.cachedAt
+        cachedAt: data.cachedAt,
+        views: typeof data.views === 'number' ? data.views : undefined,
+        maxViews: typeof data.maxViews === 'number' ? data.maxViews : undefined
       };
     }
   } catch {
@@ -113,20 +123,41 @@ export function hasCachedJokeForToday(
 
 export async function getDailyJoke({
   forceRefresh = false,
+  forceShow = false,
+  maxViews,
   cachePath = getDefaultCachePath(),
   todayKey = getTodayKey(),
   fetchFn = globalThis.fetch,
   timeoutMs = 3000
 }: DailyJokeOptions = {}): Promise<JokeResult> {
-  if (!forceRefresh) {
-    const cached = readCache(cachePath);
-    if (cached && cached.date === todayKey && cached.joke) {
-      return {
-        joke: cached.joke,
-        source: 'cache',
-        date: cached.date
-      };
-    }
+  const cached = readCache(cachePath);
+  const effectiveMaxViews =
+    maxViews !== undefined
+      ? maxViews
+      : cached?.maxViews !== undefined
+        ? cached.maxViews
+        : DEFAULT_MAX_DAILY_VIEWS;
+
+  if (!forceRefresh && cached && cached.date === todayKey && cached.joke) {
+    const updatedViews = (cached.views ?? 1) + 1;
+    const updatedRecord: CachedJokeRecord = {
+      ...cached,
+      views: updatedViews,
+      maxViews: effectiveMaxViews
+    };
+    writeCache(updatedRecord, cachePath);
+
+    const hidden =
+      !forceShow && effectiveMaxViews > 0 && updatedViews > effectiveMaxViews;
+
+    return {
+      joke: cached.joke,
+      source: 'cache',
+      date: cached.date,
+      views: updatedViews,
+      maxViews: effectiveMaxViews,
+      hidden
+    };
   }
 
   const remote = await fetchRemoteDadJoke({ timeoutMs, fetchFn });
@@ -135,29 +166,39 @@ export async function getDailyJoke({
       date: todayKey,
       joke: remote.joke,
       id: remote.id,
-      cachedAt: new Date().toISOString()
+      cachedAt: new Date().toISOString(),
+      views: 1,
+      maxViews: effectiveMaxViews
     };
     writeCache(cacheRecord, cachePath);
     return {
       joke: remote.joke,
       source: 'network',
-      date: todayKey
+      date: todayKey,
+      views: 1,
+      maxViews: effectiveMaxViews,
+      hidden: false
     };
   }
 
-  const existing = readCache(cachePath);
-  if (existing && existing.joke) {
+  if (cached && cached.joke) {
     return {
-      joke: existing.joke,
+      joke: cached.joke,
       source: 'stale-cache',
-      date: existing.date
+      date: cached.date,
+      views: 1,
+      maxViews: effectiveMaxViews,
+      hidden: false
     };
   }
 
   return {
     joke: getFallbackJoke(todayKey),
     source: 'offline-fallback',
-    date: todayKey
+    date: todayKey,
+    views: 1,
+    maxViews: effectiveMaxViews,
+    hidden: false
   };
 }
 

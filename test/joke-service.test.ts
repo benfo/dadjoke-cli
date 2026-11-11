@@ -30,7 +30,7 @@ describe('daily-dadjoke service', () => {
     const tmpCache = path.join(os.tmpdir(), `test-cache-${Date.now()}.json`);
     try {
       expect(readCache(tmpCache)).toBeNull();
-      const data = { date: '2026-11-11', joke: 'Funny dad joke', id: 'abc' };
+      const data = { date: '2026-11-11', joke: 'Funny dad joke', id: 'abc', views: 1, maxViews: 3 };
       writeCache(data, tmpCache);
       const read = readCache(tmpCache);
       expect(read).toEqual(data);
@@ -56,6 +56,8 @@ describe('daily-dadjoke service', () => {
       });
       expect(result1.joke).toBe('Mocked API Joke');
       expect(result1.source).toBe('network');
+      expect(result1.views).toBe(1);
+      expect(result1.hidden).toBe(false);
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
       const result2 = await getDailyJoke({
@@ -65,6 +67,8 @@ describe('daily-dadjoke service', () => {
       });
       expect(result2.joke).toBe('Mocked API Joke');
       expect(result2.source).toBe('cache');
+      expect(result2.views).toBe(2);
+      expect(result2.hidden).toBe(false);
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
       const result3 = await getDailyJoke({
@@ -75,7 +79,68 @@ describe('daily-dadjoke service', () => {
       });
       expect(result3.joke).toBe('Mocked API Joke');
       expect(result3.source).toBe('network');
+      expect(result3.views).toBe(1);
+      expect(result3.hidden).toBe(false);
       expect(mockFetch).toHaveBeenCalledTimes(2);
+    } finally {
+      fs.removeSync(tmpCache);
+    }
+  });
+
+  it('hides daily joke after max daily views is exceeded unless forceShow is true', async () => {
+    const tmpCache = path.join(os.tmpdir(), `test-cache-views-${Date.now()}.json`);
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: '123', joke: 'Limited Joke' })
+    });
+
+    try {
+      // Session 1 (maxViews = 2)
+      const s1 = await getDailyJoke({
+        cachePath: tmpCache,
+        todayKey: '2026-11-11',
+        maxViews: 2,
+        fetchFn: mockFetch as unknown as typeof globalThis.fetch
+      });
+      expect(s1.views).toBe(1);
+      expect(s1.hidden).toBe(false);
+
+      // Session 2
+      const s2 = await getDailyJoke({
+        cachePath: tmpCache,
+        todayKey: '2026-11-11',
+        fetchFn: mockFetch as unknown as typeof globalThis.fetch
+      });
+      expect(s2.views).toBe(2);
+      expect(s2.hidden).toBe(false);
+
+      // Session 3 -> exceeds maxViews (2) -> hidden!
+      const s3 = await getDailyJoke({
+        cachePath: tmpCache,
+        todayKey: '2026-11-11',
+        fetchFn: mockFetch as unknown as typeof globalThis.fetch
+      });
+      expect(s3.views).toBe(3);
+      expect(s3.hidden).toBe(true);
+
+      // Session 4 with forceShow -> shown!
+      const s4 = await getDailyJoke({
+        cachePath: tmpCache,
+        todayKey: '2026-11-11',
+        forceShow: true,
+        fetchFn: mockFetch as unknown as typeof globalThis.fetch
+      });
+      expect(s4.views).toBe(4);
+      expect(s4.hidden).toBe(false);
+
+      // Next day -> resets views to 1 and shows again!
+      const nextDay = await getDailyJoke({
+        cachePath: tmpCache,
+        todayKey: '2026-11-12',
+        fetchFn: mockFetch as unknown as typeof globalThis.fetch
+      });
+      expect(nextDay.views).toBe(1);
+      expect(nextDay.hidden).toBe(false);
     } finally {
       fs.removeSync(tmpCache);
     }
