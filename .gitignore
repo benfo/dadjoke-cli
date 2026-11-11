@@ -1,3 +1,6 @@
-node_modules/
+bin/
 dist/
+dadjoke
+dadjoke.exe
+*.exe
 .dadjoke-cache.json
