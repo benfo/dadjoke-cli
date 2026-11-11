@@ -1,0 +1,39 @@
+{
+  "name": "daily-dadjoke",
+  "version": "1.0.0",
+  "description": "Daily dad joke CLI for your terminal startup",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "dadjoke": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "dadjoke",
+    "cli",
+    "jokes",
+    "terminal"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "boxen": "^9.0.0",
+    "chalk": "^6.0.1",
+    "commander": "^15.1.0",
+    "fs-extra": "^11.4.1",
+    "ora": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
