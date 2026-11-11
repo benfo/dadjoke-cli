@@ -1,3 +1,3 @@
-Stopped at: All tasks in Daily Dad Joke CLI epic completed and committed
-In progress: Nothing in progress
-Next: Ready for any new features or ideas in a fresh session
+Stopped at: T-004 in review (manual runs always print; --max-views throttles)
+In progress: Waiting for user approval on T-004
+Next: Mark T-004 done, commit, and start T-005 (Go shell init + cross-OS build)
