@@ -1,3 +1,3 @@
-Stopped at: TypeScript dad joke CLI built with commander, chalk, boxen, ora, fs-extra and vitest
-In progress: Awaiting user check-in review
-Next: Complete first task and git commit, then build shell init command
+Stopped at: Fixed shell hook order and updated global npm link for T-002
+In progress: Awaiting user confirmation that new terminal works
+Next: Complete T-002 and git commit, then build session count limit
