@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benfourie/daily-dadjoke/internal/joke"
+	"github.com/benfo/dadjoke-cli/internal/joke"
 )
 
 func TestRootCmd_OrthogonalFlagsAndMaxViews(t *testing.T) {

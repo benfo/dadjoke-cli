@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/benfourie/daily-dadjoke/internal/shellinit"
+	"github.com/benfo/dadjoke-cli/internal/shellinit"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )

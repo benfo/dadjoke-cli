@@ -1,6 +1,6 @@
 package main
 
-import "github.com/benfourie/daily-dadjoke/cmd"
+import "github.com/benfo/dadjoke-cli/cmd"
 
 func main() {
 	cmd.Execute()

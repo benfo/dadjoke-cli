@@ -1,3 +1,3 @@
-Stopped at: E-002 complete (Go rewrite finished and committed)
-In progress: Nothing in progress
-Next: Define next epic or feature when ready
+Stopped at: T-006 done, starting T-007
+In progress: Adding .github/workflows/ci.yml
+Next: Complete T-007 and review CI workflow

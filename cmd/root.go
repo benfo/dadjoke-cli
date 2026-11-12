@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/benfourie/daily-dadjoke/internal/joke"
+	"github.com/benfo/dadjoke-cli/internal/joke"
 	"github.com/spf13/cobra"
 )
 

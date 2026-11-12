@@ -168,7 +168,7 @@ func FetchRemoteDadJoke(opts FetchOptions) *RemoteJoke {
 		return nil
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "DailyDadJokeCLI (https://github.com/benfourie/daily-dadjoke)")
+	req.Header.Set("User-Agent", "DailyDadJokeCLI (https://github.com/benfo/dadjoke-cli)")
 
 	resp, err := client.Do(req)
 	if err != nil {
