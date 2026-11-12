@@ -80,3 +80,44 @@ func TestRootCmd_RejectsNegativeMaxViews(t *testing.T) {
 		t.Fatalf("expected error for negative --max-views, got nil")
 	}
 }
+
+func TestInitCmd_DryRunInstallAndUninstall(t *testing.T) {
+	tempDir := t.TempDir()
+	profilePath := filepath.Join(tempDir, "Microsoft.PowerShell_profile.ps1")
+
+	// Dry run
+	rootDry := NewRootCmd()
+	bufDry := new(bytes.Buffer)
+	rootDry.SetOut(bufDry)
+	rootDry.SetArgs([]string{"init", "--shell", "pwsh", "--profile", profilePath, "--dry-run"})
+	if err := rootDry.Execute(); err != nil {
+		t.Fatalf("unexpected init dry-run error: %v", err)
+	}
+	if !strings.Contains(bufDry.String(), "Shell Hook Preview (Dry Run)") || !strings.Contains(bufDry.String(), "--max-views 3") {
+		t.Errorf("unexpected dry-run output:\n%s", bufDry.String())
+	}
+
+	// Install
+	rootInstall := NewRootCmd()
+	bufInstall := new(bytes.Buffer)
+	rootInstall.SetOut(bufInstall)
+	rootInstall.SetArgs([]string{"init", "--shell", "pwsh", "--profile", profilePath})
+	if err := rootInstall.Execute(); err != nil {
+		t.Fatalf("unexpected init install error: %v", err)
+	}
+	if !strings.Contains(bufInstall.String(), "Installed startup hook") {
+		t.Errorf("unexpected install output:\n%s", bufInstall.String())
+	}
+
+	// Uninstall
+	rootUninstall := NewRootCmd()
+	bufUninstall := new(bytes.Buffer)
+	rootUninstall.SetOut(bufUninstall)
+	rootUninstall.SetArgs([]string{"init", "--shell", "pwsh", "--profile", profilePath, "--uninstall"})
+	if err := rootUninstall.Execute(); err != nil {
+		t.Fatalf("unexpected init uninstall error: %v", err)
+	}
+	if !strings.Contains(bufUninstall.String(), "Removed daily dad joke hook") {
+		t.Errorf("unexpected uninstall output:\n%s", bufUninstall.String())
+	}
+}

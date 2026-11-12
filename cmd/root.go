@@ -79,6 +79,8 @@ func NewRootCmd() *cobra.Command {
 	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Always show today's joke even if daily session limit is reached")
 	cmd.Flags().IntVarP(&opts.MaxViews, "max-views", "m", joke.DefaultMaxDailyViews, "Max terminal sessions per day to display the joke (default: 3, 0 for unlimited)")
 
+	cmd.AddCommand(NewInitCmd())
+
 	return cmd
 }
 
