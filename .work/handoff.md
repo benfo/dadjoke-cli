@@ -1,3 +1,3 @@
-Stopped at: T-006 done, starting T-007
-In progress: Adding .github/workflows/ci.yml
-Next: Complete T-007 and review CI workflow
+Stopped at: T-007 done, starting T-008
+In progress: Creating benfo/dadjoke-cli on GitHub and pushing main
+Next: Verify CI workflow run on GitHub
