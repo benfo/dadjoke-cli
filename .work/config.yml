@@ -1,6 +1,6 @@
 store: repo                   # repo, ignore, local or home; chosen at wk init
 principles_dir: principles   # or an absolute path, shared across projects
-counters: { E: 3, T: 8, I: 4, D: 7, L: 2 }
+counters: { E: 3, T: 8, I: 4, D: 7, L: 3 }
 # Your git workflow. Empty means not chosen: the agent asks, wk never branches.
 # Set with: wk config set git.branch none|task|epic, wk config set git.commit ask|task|checkpoint
 git:
